@@ -1,5 +1,5 @@
-CC=		icc
-CXX=		icpc
+CC=		mpicc
+CXX=		mpic++
 CFLAGS=		-g -Wall -m64 -O2
 CXXFLAGS=	$(CFLAGS)
 DFLAGS=		-DHAVE_PTHREAD -D_LARGEFILE64_SOURCE #-D_FILE_OFFSET_BITS=64
@@ -10,7 +10,7 @@ OBJS=		utils.o bwt.o bwtio.o bwtaln.o bwtgap.o is.o \
 			bwtsw2_chain.o bamlite.o
 PROG=		pBWA
 INCLUDES=	
-LIBS=		-lm -lz -lpthread -Lbwt_gen -lbwtgen -lmpi
+LIBS=		-lm -lz -lpthread -Lbwt_gen -lbwtgen
 SUBDIRS=	. bwt_gen
 
 .SUFFIXES:.c .o .cc
