@@ -170,7 +170,7 @@ static int infer_isize(int n_seqs, bwa_seq_t *seqs[2], isize_info_t *ii, double 
 		fprintf(stderr, "Proc %d: [infer_isize] inferred maximum insert size greater than -a, discarding isizes\n", rank);
 	}
 
-	
+
 	return 0;
 }
 
@@ -514,7 +514,7 @@ bwa_cigar_t *bwa_sw_core(bwtint_t l_pac, const ubyte_t *pacseq, int len, const u
 		}
 		*_cnt = (uint32_t)n_mm<<16 | n_gapo<<8 | n_gape;
 	}
-	
+
 	free(ref_seq); free(path);
 	return cigar;
 }
@@ -561,7 +561,7 @@ ubyte_t *bwa_paired_sw(const bntseq_t *bns, const ubyte_t *_pacseq, int n_seqs, 
 				if ((_a) < 0) (_a) = 0;									\
 				if ((_b) > _pref->pos) (_b) = _pref->pos;				\
 			} while (0)
-			
+
 #define __set_fixed(_pref, _pmate, _beg, _cnt) do {						\
 				_pmate->type = BWA_TYPE_MATESW;							\
 				_pmate->pos = _beg;										\
@@ -658,7 +658,7 @@ ubyte_t *bwa_paired_sw(const bntseq_t *bns, const ubyte_t *_pacseq, int n_seqs, 
 	return pacseq;
 }
 
-void bwa_sai2sam_pe_core(const char *prefix, char *const sai_prefix, char *const fn_fa[2], pe_opt_t *popt, MPI_File fh)
+void bwa_sai2sam_pe_core(const char *prefix, char *const sai_prefix, char *const sai_prefix2, char *const fn_fa[2], pe_opt_t *popt, MPI_File fh)
 {
 	extern bwa_seqio_t *bwa_open_reads(int mode, const char *fn_fa);
 	int i, j, n_seqs, tot_seqs = 0;
@@ -689,7 +689,8 @@ void bwa_sai2sam_pe_core(const char *prefix, char *const sai_prefix, char *const
 	//create our processor rank-specified filenames
 	char fn_sa[2][FILE_PATH_SIZE];
 	sprintf(fn_sa[0], SAI_FILE_PATTERN, sai_prefix, 1, rank);
-	sprintf(fn_sa[1], SAI_FILE_PATTERN, sai_prefix, 2, rank);
+	sprintf(fn_sa[1], SAI_FILE_PATTERN, sai_prefix2, 1, rank);
+
 	fp_sa[0] = xopen(fn_sa[0], "r");
 	fp_sa[1] = xopen(fn_sa[1], "r");
 	g_hash = kh_init(64);
@@ -721,6 +722,7 @@ void bwa_sai2sam_pe_core(const char *prefix, char *const sai_prefix, char *const
 	int recordSize = MAX_SAM_RECORD_LENGTH;
 	int maxBufSize = 2 * NUM_NEEDED * recordSize;
 	char *pb = (char*) malloc(maxBufSize + 2*recordSize);
+	// If we convert to BAM file add headers to all
 	if (rank == 0) {
 		bc += bwa_sprint_sam_SQ(pb+bc, bns);
 		bc += bwa_sprint_sam_PG(pb+bc);
@@ -733,7 +735,7 @@ void bwa_sai2sam_pe_core(const char *prefix, char *const sai_prefix, char *const
 		seqs[0] = bwa_read_seq(ks[0], NUM_NEEDED, &n_seqs, opt0.mode, opt0.trim_qual);
 		seqs[1] = bwa_read_seq(ks[1], NUM_NEEDED, &n_seqs, opt.mode, opt.trim_qual);
 		fprintf(stderr, "Proc %d: [bwa_sai2sam_pe_core] %d reads\n", rank, n_seqs);
- 
+
 		int cnt_chg;
 		isize_info_t ii;
 		ubyte_t *pacseq;
@@ -868,7 +870,7 @@ int bwa_sai2sam_pe(int argc, char *argv[])
 		return 1;
 	}
 
-	bwa_sai2sam_pe_core(argv[optind], argv[optind+1], argv + optind+2, popt, fh);
+	bwa_sai2sam_pe_core(argv[optind], argv[optind+1], argv[optind+2], argv + optind+3, popt, fh);
 	MPI_File_close(&fh);
 	free(bwa_rg_line); free(bwa_rg_id);
 	free(popt);
